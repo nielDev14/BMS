@@ -446,12 +446,8 @@ export const updateProfile = async (req, res) => {
             if (email) updateFields.email = email;
             if (contactNumber) updateFields.contactNumber = contactNumber;
             if (dateOfBirth) updateFields.dateOfBirth = dateOfBirth;
-        } else if (role === "secretary" || role === "chairman") {
-            // Staff can update limited fields
-            if (name) updateFields.name = name;
-            if (contactNumber) updateFields.contactNumber = contactNumber;
         } else {
-            // Regular users can update basic info
+            // All other users can update these fields
             if (name) updateFields.name = name;
             if (contactNumber) updateFields.contactNumber = contactNumber;
             if (dateOfBirth) updateFields.dateOfBirth = dateOfBirth;

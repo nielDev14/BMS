@@ -219,22 +219,19 @@ export function Header() {
                                         )}
                                     />
 
-                                    {(currentUser?.role === "superAdmin" ||
-                                        currentUser?.role === "user") && (
-                                        <FormField
-                                            control={form.control}
-                                            name="dateOfBirth"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Date of Birth</FormLabel>
-                                                    <FormControl>
-                                                        <Input type="date" {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    )}
+                                    <FormField
+                                        control={form.control}
+                                        name="dateOfBirth"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Date of Birth</FormLabel>
+                                                <FormControl>
+                                                    <Input type="date" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
 
                                     <div className="flex justify-end space-x-2 mt-6">
                                         <Button
