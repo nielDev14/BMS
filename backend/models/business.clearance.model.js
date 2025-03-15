@@ -15,23 +15,22 @@ const businessClearanceSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
+        // Business Owner Information
         ownerName: {
             type: String,
             required: true,
         },
+        contactNumber: {
+            type: String,
+            required: true,
+        },
+        email: {
+            type: String,
+            required: true,
+        },
+
+        // Business Information
         businessName: {
-            type: String,
-            required: true,
-        },
-        barangay: {
-            type: String,
-            required: true,
-        },
-        municipality: {
-            type: String,
-            required: true,
-        },
-        province: {
             type: String,
             required: true,
         },
@@ -44,34 +43,61 @@ const businessClearanceSchema = new mongoose.Schema(
             enum: ["Single Proprietorship", "Partnership", "Corporation"],
             required: true,
         },
-        ownerAddress: {
+        businessLocation: {
             type: String,
             required: true,
         },
-        contactNumber: {
+        operatorManager: {
             type: String,
             required: true,
         },
-        email: {
+
+        // Location (Owner's Address)
+        barangay: {
             type: String,
             required: true,
         },
+        municipality: {
+            type: String,
+            required: true,
+        },
+        province: {
+            type: String,
+            required: true,
+        },
+
+        // Purpose
+        purpose: {
+            type: String,
+            enum: [
+                "Renewal of Permit",
+                "New Business",
+                "Change of Business Name",
+                "Change of Location",
+                "Additional Business Activity",
+            ],
+            required: true,
+        },
+
+        // Required Documents
         dtiSecRegistration: {
+            type: String,
+            required: true,
+        },
+        barangayClearance: {
+            type: String,
+            required: true,
+        },
+        validId: {
             type: String,
             required: true,
         },
         mayorsPermit: String,
         leaseContract: String,
-        barangayClearance: {
-            type: String,
-            required: true,
-        },
         fireSafetyCertificate: String,
         sanitaryPermit: String,
-        validId: {
-            type: String,
-            required: true,
-        },
+
+        // Payment Information
         amount: {
             type: Number,
             required: true,
@@ -94,33 +120,35 @@ const businessClearanceSchema = new mongoose.Schema(
         },
         receipt: {
             type: {
-                filename: String,
-                contentType: String,
-                data: String,
+                filename: {
+                    type: String,
+                    required: true,
+                },
+                contentType: {
+                    type: String,
+                    required: true,
+                },
+                data: {
+                    type: String,
+                    required: true,
+                },
             },
             required: true,
         },
+
+        // Status Information
         status: {
             type: String,
             enum: Object.values(STATUS_TYPES),
             default: STATUS_TYPES.PENDING,
         },
-        dateApproved: {
-            type: Date,
-            default: null,
-        },
-        dateCompleted: {
-            type: Date,
-            default: null,
-        },
         isVerified: {
             type: Boolean,
             default: false,
         },
-        dateOfIssuance: {
-            type: Date,
-            default: null,
-        },
+        dateApproved: Date,
+        dateCompleted: Date,
+        dateOfIssuance: Date,
     },
     { timestamps: true }
 );

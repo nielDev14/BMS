@@ -67,37 +67,29 @@ export const getTreasurerDashboardData = async (req, res) => {
         ).length;
         const blotterReportsCount = blotterReports.length;
 
-        // Calculate today's collections (only from approved/completed transactions)
+        // Calculate today's collections (excluding only rejected transactions)
         const todayCollections = {
             barangayClearance: barangayClearances
-                .filter((doc) =>
-                    [STATUS_TYPES.APPROVED, STATUS_TYPES.COMPLETED].includes(doc.status)
-                )
+                .filter((doc) => doc.status !== "Rejected")
                 .reduce((total, doc) => total + (doc.amount || 0), 0),
             businessClearance: businessClearances
-                .filter((doc) =>
-                    [STATUS_TYPES.APPROVED, STATUS_TYPES.COMPLETED].includes(doc.status)
-                )
+                .filter((doc) => doc.status !== "Rejected")
                 .reduce((total, doc) => total + (doc.amount || 0), 0),
             others: blotterReports
-                .filter((doc) => doc.status === "Resolved" || doc.status === "Closed")
+                .filter((doc) => doc.status !== "Rejected")
                 .reduce((total, doc) => total + (doc.amount || 0), 0),
         };
 
-        // Calculate yearly collections (only from approved/completed transactions)
+        // Calculate yearly collections (excluding only rejected transactions)
         const yearlyCollections = {
             barangayClearance: yearlyBarangayClearances
-                .filter((doc) =>
-                    [STATUS_TYPES.APPROVED, STATUS_TYPES.COMPLETED].includes(doc.status)
-                )
+                .filter((doc) => doc.status !== "Rejected")
                 .reduce((total, doc) => total + (doc.amount || 0), 0),
             businessClearance: yearlyBusinessClearances
-                .filter((doc) =>
-                    [STATUS_TYPES.APPROVED, STATUS_TYPES.COMPLETED].includes(doc.status)
-                )
+                .filter((doc) => doc.status !== "Rejected")
                 .reduce((total, doc) => total + (doc.amount || 0), 0),
             others: yearlyBlotterReports
-                .filter((doc) => doc.status === "Resolved" || doc.status === "Closed")
+                .filter((doc) => doc.status !== "Rejected")
                 .reduce((total, doc) => total + (doc.amount || 0), 0),
         };
 
@@ -105,39 +97,29 @@ export const getTreasurerDashboardData = async (req, res) => {
         const totalCollections = Object.values(todayCollections).reduce((a, b) => a + b, 0);
         const yearlyTotal = Object.values(yearlyCollections).reduce((a, b) => a + b, 0);
 
-        // Combine all recent transactions (only approved/completed)
+        // Combine all recent transactions (include all statuses)
         const allTransactions = [
-            ...barangayClearances
-                .filter((doc) =>
-                    [STATUS_TYPES.APPROVED, STATUS_TYPES.COMPLETED].includes(doc.status)
-                )
-                .map((doc) => ({
-                    requestedDocument: "Barangay Clearance",
-                    amount: doc.amount,
-                    userId: doc.userId,
-                    dateRequested: doc.createdAt,
-                    status: doc.status,
-                })),
-            ...businessClearances
-                .filter((doc) =>
-                    [STATUS_TYPES.APPROVED, STATUS_TYPES.COMPLETED].includes(doc.status)
-                )
-                .map((doc) => ({
-                    requestedDocument: "Business Clearance",
-                    amount: doc.amount,
-                    userId: doc.userId,
-                    dateRequested: doc.createdAt,
-                    status: doc.status,
-                })),
-            ...blotterReports
-                .filter((doc) => doc.status === "Resolved" || doc.status === "Closed")
-                .map((doc) => ({
-                    requestedDocument: "Blotter Report",
-                    amount: doc.amount,
-                    userId: doc.userId,
-                    dateRequested: doc.createdAt,
-                    status: doc.status,
-                })),
+            ...barangayClearances.map((doc) => ({
+                requestedDocument: "Barangay Clearance",
+                amount: doc.status === "Rejected" ? 0 : doc.amount || 0,
+                userId: doc.userId,
+                dateRequested: doc.createdAt,
+                status: doc.status,
+            })),
+            ...businessClearances.map((doc) => ({
+                requestedDocument: "Business Clearance",
+                amount: doc.status === "Rejected" ? 0 : doc.amount || 0,
+                userId: doc.userId,
+                dateRequested: doc.createdAt,
+                status: doc.status,
+            })),
+            ...blotterReports.map((doc) => ({
+                requestedDocument: "Blotter Report",
+                amount: doc.status === "Rejected" ? 0 : doc.amount || 0,
+                userId: doc.userId,
+                dateRequested: doc.createdAt,
+                status: doc.status,
+            })),
         ];
 
         // Sort transactions by date and get the 10 most recent
@@ -201,7 +183,6 @@ export const getTransactionHistory = async (req, res) => {
                 ...dateFilter,
             }).populate("userId", "firstName lastName"),
             BlotterReport.find({
-                barangay,
                 ...dateFilter,
             }).populate("userId", "firstName lastName"),
         ]);
@@ -221,20 +202,22 @@ export const getTransactionHistory = async (req, res) => {
                     date: doc.dateOfPayment,
                     status: doc.paymentStatus || "Pending",
                 },
-                receipt: doc.receipt ? {
-                    filename: doc.receipt.filename,
-                    contentType: doc.receipt.contentType,
-                    data: doc.receipt.data,
-                    url: doc.receipt.data.startsWith('data:') 
-                        ? doc.receipt.data 
-                        : `data:${doc.receipt.contentType};base64,${doc.receipt.data}`
-                } : null,
+                receipt: doc.receipt
+                    ? {
+                          filename: doc.receipt.filename,
+                          contentType: doc.receipt.contentType,
+                          data: doc.receipt.data,
+                          url: doc.receipt.data.startsWith("data:")
+                              ? doc.receipt.data
+                              : `data:${doc.receipt.contentType};base64,${doc.receipt.data}`,
+                      }
+                    : null,
                 purpose: doc.purpose,
                 address: {
                     barangay: doc.barangay,
                     municipality: doc.municipality,
-                    province: doc.province
-                }
+                    province: doc.province,
+                },
             })),
             ...businessClearances.map((doc) => ({
                 id: doc._id,
@@ -249,20 +232,22 @@ export const getTransactionHistory = async (req, res) => {
                     date: doc.dateOfPayment,
                     status: doc.paymentStatus || "Pending",
                 },
-                receipt: doc.receipt ? {
-                    filename: doc.receipt.filename,
-                    contentType: doc.receipt.contentType,
-                    data: doc.receipt.data,
-                    url: doc.receipt.data.startsWith('data:') 
-                        ? doc.receipt.data 
-                        : `data:${doc.receipt.contentType};base64,${doc.receipt.data}`
-                } : null,
+                receipt: doc.receipt
+                    ? {
+                          filename: doc.receipt.filename,
+                          contentType: doc.receipt.contentType,
+                          data: doc.receipt.data,
+                          url: doc.receipt.data.startsWith("data:")
+                              ? doc.receipt.data
+                              : `data:${doc.receipt.contentType};base64,${doc.receipt.data}`,
+                      }
+                    : null,
                 businessDetails: {
                     name: doc.businessName,
                     type: doc.businessType,
                     nature: doc.businessNature,
-                    address: doc.businessAddress
-                }
+                    address: doc.businessAddress,
+                },
             })),
             ...blotterReports.map((doc) => ({
                 id: doc._id,
@@ -277,25 +262,29 @@ export const getTransactionHistory = async (req, res) => {
                     date: doc.dateOfPayment,
                     status: doc.paymentStatus || "Pending",
                 },
-                receipt: doc.receipt ? {
-                    filename: doc.receipt.filename,
-                    contentType: doc.receipt.contentType,
-                    data: doc.receipt.data,
-                    url: doc.receipt.data.startsWith('data:') 
-                        ? doc.receipt.data 
-                        : `data:${doc.receipt.contentType};base64,${doc.receipt.data}`
-                } : null,
+                receipt: doc.receipt
+                    ? {
+                          filename: doc.receipt.filename,
+                          contentType: doc.receipt.contentType,
+                          data: doc.receipt.data,
+                          url: doc.receipt.data.startsWith("data:")
+                              ? doc.receipt.data
+                              : `data:${doc.receipt.contentType};base64,${doc.receipt.data}`,
+                      }
+                    : null,
                 incidentDetails: {
                     type: doc.incidentType,
                     location: doc.incidentLocation,
                     date: doc.incidentDate,
-                    description: doc.description
-                }
+                    description: doc.narrative,
+                },
             })),
         ].sort((a, b) => b.dateRequested - a.dateRequested);
 
-        // Calculate total amount
-        const totalAmount = allTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+        // Calculate total amount (excluding rejected transactions)
+        const totalAmount = allTransactions
+            .filter((transaction) => transaction.status !== "Rejected")
+            .reduce((sum, transaction) => sum + transaction.amount, 0);
 
         res.status(200).json({
             success: true,

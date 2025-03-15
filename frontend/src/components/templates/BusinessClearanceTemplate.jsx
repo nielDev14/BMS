@@ -93,27 +93,25 @@ export const generateBusinessClearanceTemplate = (document, currentUser) => {
                             This is to certify Business or Trade activity described below:
                         </p>
 
-                        <div class="space-y-3 text-center">
-                            <div>
-                                <p class="font-bold text-xl underline mb-0.5">${document.businessName}</p>
-                                <p class="text-sm">Business Name</p>
+                        <div class="space-y-6 text-center mx-auto" style="max-width: 600px;">
+                            <div class="mb-6">
+                                <p class="font-bold text-xl underline">${document.businessName}</p>
+                                <p class="text-sm mt-1">Business Name</p>
                             </div>
 
-                            <div>
-                                <p class="font-bold text-xl underline mb-0.5">
-                                    ${document.barangay}, ${document.municipality}, ${document.province}
-                                </p>
-                                <p class="text-sm">Location of Business</p>
+                            <div class="mb-6">
+                                <p class="font-bold text-xl underline">Purok ${document.businessLocation}</p>
+                                <p class="text-sm mt-1">Location of Business</p>
                             </div>
 
-                            <div>
-                                <p class="font-bold text-xl underline mb-0.5">${document.ownerName}</p>
-                                <p class="text-sm">Owner Name</p>
+                            <div class="mb-6">
+                                <p class="font-bold text-xl underline">${document.operatorManager}</p>
+                                <p class="text-sm mt-1">Operator/Manager</p>
                             </div>
                         </div>
 
                         <p class="text-justify leading-relaxed">
-                            Being applied for the issuance of <span class="font-bold">RENEWAL OF PERMIT</span> of corresponding Mayor's Permit and has been found to be:
+                            Being applied for the issuance of <span class="font-bold">${document.purpose}</span> of corresponding Mayor's Permit and has been found to be:
                         </p>
 
                         <div class="space-y-3">

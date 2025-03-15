@@ -10,128 +10,83 @@ import { STATUS_TYPES } from "../models/business.clearance.model.js";
 
 export const createBusinessClearance = async (req, res, next) => {
     try {
-        const {
-            userId,
-            ownerName,
-            businessName,
-            barangay,
-            municipality,
-            province,
-            businessType,
-            businessNature,
-            ownerAddress,
-            contactNumber,
-            email,
-            dtiSecRegistration,
-            mayorsPermit,
-            leaseContract,
-            barangayClearance,
-            fireSafetyCertificate,
-            sanitaryPermit,
-            validId,
-            amount,
-            paymentMethod,
-            referenceNumber,
-            dateOfPayment,
-            receipt,
-        } = req.body;
+        const data = req.body;
+        const requiredFields = [
+            "ownerName",
+            "businessName",
+            "barangay",
+            "municipality",
+            "province",
+            "businessType",
+            "businessNature",
+            "purpose",
+            "businessLocation",
+            "operatorManager",
+            "contactNumber",
+            "email",
+            "dtiSecRegistration",
+            "barangayClearance",
+            "validId",
+            "paymentMethod",
+            "dateOfPayment",
+            "receipt",
+        ];
 
         // Validate required fields
-        if (
-            !ownerName ||
-            !businessName ||
-            !barangay ||
-            !municipality ||
-            !province ||
-            !businessType ||
-            !businessNature ||
-            !ownerAddress ||
-            !contactNumber ||
-            !email ||
-            !dtiSecRegistration ||
-            !barangayClearance ||
-            !validId ||
-            !paymentMethod ||
-            !dateOfPayment ||
-            !receipt
-        ) {
+        const missingFields = requiredFields.filter((field) => !data[field]);
+        if (missingFields.length > 0) {
             return res.status(400).json({
                 success: false,
-                message: "Please provide all required fields",
+                message: "Missing required fields: " + missingFields.join(", "),
             });
         }
 
         // Validate reference number for digital payments
-        if (["GCash", "Paymaya"].includes(paymentMethod) && !referenceNumber) {
+        if (["GCash", "Paymaya"].includes(data.paymentMethod) && !data.referenceNumber) {
             return res.status(400).json({
                 success: false,
                 message: "Reference number is required for digital payments",
             });
         }
 
+        // Construct owner's address from location fields
+        const ownerAddress = `${data.barangay}, ${data.municipality}, ${data.province}`;
+
         const businessClearance = new BusinessClearance({
-            userId,
-            ownerName,
-            businessName,
-            barangay,
-            municipality,
-            province,
-            businessType,
-            businessNature,
+            ...data,
             ownerAddress,
-            contactNumber,
-            email,
-            dtiSecRegistration,
-            mayorsPermit,
-            leaseContract,
-            barangayClearance,
-            fireSafetyCertificate,
-            sanitaryPermit,
-            validId,
-            amount: amount || 100,
-            paymentMethod,
-            referenceNumber,
-            dateOfPayment: new Date(dateOfPayment),
-            receipt: receipt
-                ? {
-                      filename: receipt.filename,
-                      contentType: receipt.contentType,
-                      data: receipt.data,
-                  }
-                : null,
+            dateOfPayment: new Date(data.dateOfPayment),
         });
 
         await createLog(
-            userId,
+            data.userId,
             "Business Clearance Request",
             "Business Clearance",
-            `${ownerName} has requested a business clearance for ${businessName}`
+            `${data.ownerName} has requested a business clearance for ${data.businessName}`
         );
 
         const savedClearance = await businessClearance.save();
 
-        // Create transaction history
         await createTransactionHistory({
-            userId,
+            userId: data.userId,
             transactionId: savedClearance._id,
-            residentName: ownerName,
+            residentName: data.ownerName,
             requestedDocument: "Business Clearance",
             dateRequested: new Date(),
-            barangay,
+            barangay: data.barangay,
             action: "created",
             status: STATUS_TYPES.PENDING,
         });
 
-        // Create and send notification to secretaries
         const staffNotification = createNotification(
             "New Business Clearance Request",
-            `${ownerName} has requested a business clearance for ${businessName}`,
+            `${data.ownerName} has requested a business clearance for ${data.businessName}`,
             "request",
             savedClearance._id,
             "BusinessClearance"
         );
 
-        await sendNotificationToBarangaySecretaries(barangay, staffNotification);
+        await sendNotificationToBarangaySecretaries(data.barangay, staffNotification);
 
         res.status(201).json({
             success: true,
@@ -176,7 +131,6 @@ export const updateBusinessClearanceStatus = async (req, res, next) => {
         const { status } = req.body;
         const { name: secretaryName, barangay } = req.user;
 
-        // Validate user role
         if (!["secretary", "chairman"].includes(req.user.role)) {
             return res.status(403).json({
                 success: false,
@@ -184,11 +138,7 @@ export const updateBusinessClearanceStatus = async (req, res, next) => {
             });
         }
 
-        const businessClearance = await BusinessClearance.findOne({
-            _id: id,
-            barangay,
-        });
-
+        const businessClearance = await BusinessClearance.findOne({ _id: id, barangay });
         if (!businessClearance) {
             return res.status(404).json({
                 success: false,
@@ -197,8 +147,6 @@ export const updateBusinessClearanceStatus = async (req, res, next) => {
         }
 
         const currentDate = new Date();
-
-        // Update status-related fields
         businessClearance.status = status;
         businessClearance.isVerified = [
             STATUS_TYPES.APPROVED,
@@ -206,7 +154,6 @@ export const updateBusinessClearanceStatus = async (req, res, next) => {
             STATUS_TYPES.COMPLETED,
         ].includes(status);
 
-        // Update date fields based on status
         if (status === STATUS_TYPES.APPROVED) {
             businessClearance.dateApproved = currentDate;
             businessClearance.dateOfIssuance = currentDate;
@@ -215,22 +162,6 @@ export const updateBusinessClearanceStatus = async (req, res, next) => {
         }
 
         await businessClearance.save();
-
-        // Notify the requestor
-        const user = await User.findById(businessClearance.userId);
-        if (user) {
-            const notification = createNotification(
-                "Business Clearance Status Update",
-                `Your business clearance request has been ${status.toLowerCase()} by ${secretaryName}`,
-                "status_update",
-                businessClearance._id,
-                "BusinessClearance"
-            );
-
-            user.notifications.push(notification);
-            user.unreadNotifications += 1;
-            await user.save();
-        }
 
         res.status(200).json({
             success: true,
@@ -248,10 +179,10 @@ export const printBusinessClearance = async (req, res) => {
         const { id } = req.params;
         const { barangay } = req.user;
 
-        const clearance = await BusinessClearance.findOne({
-            _id: id,
-            barangay,
-        }).populate("userId", "firstName middleName lastName");
+        const clearance = await BusinessClearance.findOne({ _id: id, barangay }).populate(
+            "userId",
+            "firstName middleName lastName"
+        );
 
         if (!clearance) {
             return res.status(404).json({

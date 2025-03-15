@@ -86,6 +86,12 @@ export default function TransactionHistory() {
                 return "bg-blue-500 hover:bg-blue-600";
             case "rejected":
                 return "bg-red-500 hover:bg-red-600";
+            case "under investigation":
+                return "bg-orange-500 hover:bg-orange-600";
+            case "resolved":
+                return "bg-green-500 hover:bg-green-600";
+            case "closed":
+                return "bg-gray-500 hover:bg-gray-600";
             default:
                 return "bg-gray-500 hover:bg-gray-600";
         }
@@ -108,6 +114,11 @@ export default function TransactionHistory() {
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     const currentTransactions = filteredTransactions.slice(startIndex, endIndex);
+
+    // Calculate total amount excluding rejected transactions
+    const totalAmountExcludingRejected = filteredTransactions
+        .filter((transaction) => transaction.status.toLowerCase() !== "rejected")
+        .reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
 
     const documentTypes = ["all", "Barangay Clearance", "Business Clearance", "Blotter Report"];
 
@@ -175,7 +186,8 @@ export default function TransactionHistory() {
                     {/* Total Amount Display */}
                     <div className="text-right">
                         <p className="text-lg font-semibold">
-                            Total Amount: {formatAmount(totalAmount)}
+                            Total Amount (Excluding Rejected):{" "}
+                            {formatAmount(totalAmountExcludingRejected)}
                         </p>
                     </div>
 
@@ -244,7 +256,7 @@ export default function TransactionHistory() {
                         </Table>
                     </div>
 
-                    {/* Pagination Info */}
+                    {/* Pagination Controls */}
                     <div className="flex items-center justify-between">
                         <p className="text-sm text-muted-foreground">
                             {searchTerm
@@ -252,6 +264,14 @@ export default function TransactionHistory() {
                                 : `${totalTransactions} transactions in total`}
                         </p>
                         <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                            >
+                                Previous
+                            </Button>
                             <Select
                                 value={pageSize.toString()}
                                 onValueChange={(value) => {
@@ -270,9 +290,21 @@ export default function TransactionHistory() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <p className="text-sm text-muted-foreground">
-                                Page {currentPage} of {totalPages}
-                            </p>
+                            <div className="flex items-center gap-1">
+                                <p className="text-sm text-muted-foreground">
+                                    Page {currentPage} of {totalPages}
+                                </p>
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                                }
+                                disabled={currentPage === totalPages}
+                            >
+                                Next
+                            </Button>
                         </div>
                     </div>
                 </div>

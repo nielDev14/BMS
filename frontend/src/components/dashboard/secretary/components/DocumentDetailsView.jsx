@@ -444,6 +444,31 @@ export function DocumentDetailsView({
                                             {request.businessNature}
                                         </span>
                                     </div>
+
+                                    <div className="flex flex-col">
+                                        <span className="text-xs text-gray-500">
+                                            Operator/Manager
+                                        </span>
+                                        <span className="text-sm font-medium">
+                                            {request.operatorManager}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex flex-col sm:col-span-2">
+                                        <span className="text-xs text-gray-500">
+                                            Business Location
+                                        </span>
+                                        <span className="text-sm font-medium">
+                                            {request.businessLocation}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex flex-col sm:col-span-2">
+                                        <span className="text-xs text-gray-500">Purpose</span>
+                                        <span className="text-sm font-medium">
+                                            {request.purpose}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -457,32 +482,87 @@ export function DocumentDetailsView({
                                 <div className="grid grid-cols-1 gap-y-4 divide-y divide-gray-100">
                                     <DocumentItem
                                         label="DTI/SEC Registration"
-                                        value={request.dtiSecRegistration || "Not provided"}
-                                    />
-                                    <DocumentItem
-                                        label="Mayor's Permit"
-                                        value={request.mayorsPermit || "Not provided"}
-                                    />
-                                    <DocumentItem
-                                        label="Lease Contract"
-                                        value={request.leaseContract || "Not provided"}
+                                        value={request.dtiSecRegistration}
                                     />
                                     <DocumentItem
                                         label="Barangay Clearance"
-                                        value={request.barangayClearance || "Not provided"}
+                                        value={request.barangayClearance}
                                     />
-                                    <DocumentItem
-                                        label="Fire Safety Certificate"
-                                        value={request.fireSafetyCertificate || "Not provided"}
-                                    />
-                                    <DocumentItem
-                                        label="Sanitary Permit"
-                                        value={request.sanitaryPermit || "Not provided"}
-                                    />
-                                    <DocumentItem
-                                        label="Valid ID"
-                                        value={request.validId || "Not provided"}
-                                    />
+                                    <DocumentItem label="Valid ID" value={request.validId} />
+                                    {request.mayorsPermit && (
+                                        <DocumentItem
+                                            label="Mayor's Permit"
+                                            value={request.mayorsPermit}
+                                        />
+                                    )}
+                                    {request.leaseContract && (
+                                        <DocumentItem
+                                            label="Lease Contract"
+                                            value={request.leaseContract}
+                                        />
+                                    )}
+                                    {request.fireSafetyCertificate && (
+                                        <DocumentItem
+                                            label="Fire Safety Certificate"
+                                            value={request.fireSafetyCertificate}
+                                        />
+                                    )}
+                                    {request.sanitaryPermit && (
+                                        <DocumentItem
+                                            label="Sanitary Permit"
+                                            value={request.sanitaryPermit}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Status Information */}
+                            <div className="rounded-xl bg-gradient-to-br from-amber-50 to-yellow-50 p-5 border border-amber-100 shadow-sm">
+                                <h3 className="text-sm font-semibold text-amber-800 mb-4 flex items-center">
+                                    <AlertCircle className="h-4 w-4 mr-1.5 text-amber-600" />
+                                    Status Information
+                                </h3>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                                    <div className="flex flex-col">
+                                        <span className="text-xs text-gray-500">Status</span>
+                                        <span className="text-sm font-medium">
+                                            {request.status}
+                                        </span>
+                                    </div>
+
+                                    {request.dateApproved && (
+                                        <div className="flex flex-col">
+                                            <span className="text-xs text-gray-500">
+                                                Date Approved
+                                            </span>
+                                            <span className="text-sm font-medium">
+                                                {formatDate(request.dateApproved)}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {request.dateCompleted && (
+                                        <div className="flex flex-col">
+                                            <span className="text-xs text-gray-500">
+                                                Date Completed
+                                            </span>
+                                            <span className="text-sm font-medium">
+                                                {formatDate(request.dateCompleted)}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {request.dateOfIssuance && (
+                                        <div className="flex flex-col">
+                                            <span className="text-xs text-gray-500">
+                                                Date of Issuance
+                                            </span>
+                                            <span className="text-sm font-medium">
+                                                {formatDate(request.dateOfIssuance)}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>

@@ -64,29 +64,28 @@ export function DocumentRequestSecretary() {
                     }
 
                     return {
-                        id: request._id.toString(), // Ensure ID is a string
-                        _id: request._id.toString(), // Keep backup ID
+                        id: request._id.toString(),
+                        _id: request._id.toString(),
                         requestDate: request.createdAt,
                         type: request.type || request.documentType,
                         name: name,
-                        residentName: name,
                         status: request.status,
-                        purpose: request.purpose,
-                        age: request.age,
-                        // Basic Information
+                        // Business Owner Information
+                        ownerName: request.ownerName,
                         email: request.email,
                         contactNumber: request.contactNumber,
-                        // Address Information
-                        barangay: request.barangay,
-                        municipality: request.municipality,
-                        province: request.province,
-                        purok: request.purok,
-                        // Business clearance specific fields
+                        // Business Information
                         businessName: request.businessName,
                         businessType: request.businessType,
                         businessNature: request.businessNature,
-                        ownerName: request.ownerName,
-                        ownerAddress: request.ownerAddress,
+                        businessLocation: `${request.businessLocation}, ${request.barangay}, ${request.municipality}, ${request.province}`,
+                        operatorManager: request.operatorManager,
+                        // Location Information
+                        barangay: request.barangay,
+                        municipality: request.municipality,
+                        province: request.province,
+                        // Purpose
+                        purpose: request.purpose,
                         // Required Documents
                         dtiSecRegistration: request.dtiSecRegistration,
                         mayorsPermit: request.mayorsPermit,
@@ -100,20 +99,14 @@ export function DocumentRequestSecretary() {
                         amount: request.amount,
                         dateOfPayment: request.dateOfPayment,
                         referenceNumber: request.referenceNumber,
-                        // Receipt with proper structure
-                        receipt: request.receipt
-                            ? {
-                                  filename: request.receipt.filename,
-                                  contentType: request.receipt.contentType,
-                                  data: request.receipt.data,
-                              }
-                            : null,
-                        // Additional fields
+                        receipt: request.receipt,
+                        // Status Information
                         createdAt: request.createdAt,
                         updatedAt: request.updatedAt,
                         isVerified: request.isVerified,
                         dateApproved: request.dateApproved,
                         dateCompleted: request.dateCompleted,
+                        dateOfIssuance: request.dateOfIssuance,
                     };
                 });
 
