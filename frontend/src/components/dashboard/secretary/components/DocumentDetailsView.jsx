@@ -762,9 +762,7 @@ export function DocumentDetailsView({
                         defaultValue={request.status}
                         disabled={
                             updating ||
-                            request.status === "Completed" ||
-                            request.status === "Rejected" ||
-                            request.status === "Pending"
+                            (request.type === "Barangay Clearance" && request.status === "Pending") || (request.type === "Business Clearance" && request.status === "Pending") || request.status === "Completed"
                         }
                     >
                         <SelectTrigger className="w-full sm:w-[200px]">

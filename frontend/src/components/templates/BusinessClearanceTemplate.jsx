@@ -1,10 +1,10 @@
 import GASAN_LOGO from "../../assets/gasan-logo.png";
 import PHILIPPINES_LOGO from "../../assets/ph-logo.png";
 
-export const generateBusinessClearanceTemplate = (document, currentUser) => {
-    // Get the chairman's name from the passed data
-    const chairmanName = currentUser?.barangayCaptain || "[BARANGAY CAPTAIN NAME]";
+export const generateBusinessClearanceTemplate = (document, officials, currentUser) => {
     const currentDate = new Date();
+    // Get the chairman's name from officials
+    const chairmanName = officials.find(official => official.position === "Chairman")?.name || "[BARANGAY CAPTAIN NAME]";
 
     return `
     <!DOCTYPE html>
@@ -100,7 +100,7 @@ export const generateBusinessClearanceTemplate = (document, currentUser) => {
                             </div>
 
                             <div class="mb-6">
-                                <p class="font-bold text-xl underline">Purok ${document.businessLocation}</p>
+                                <p class="font-bold text-xl underline">${document.businessLocation}</p>
                                 <p class="text-sm mt-1">Location of Business</p>
                             </div>
 

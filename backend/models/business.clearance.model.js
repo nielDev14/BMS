@@ -111,6 +111,7 @@ const businessClearanceSchema = new mongoose.Schema(
         orNumber: {
             type: String,
             sparse: true, // Allows null/undefined but ensures uniqueness when present
+            unique: true,
         },
         treasurerName: {
             type: String,
@@ -118,6 +119,7 @@ const businessClearanceSchema = new mongoose.Schema(
         },
         referenceNumber: {
             type: String,
+            unique: true,
             required: function () {
                 return ["GCash", "Paymaya"].includes(this.paymentMethod);
             },

@@ -7,8 +7,16 @@ import { createLog } from "./log.controller.js";
 export const createBlotterReport = async (req, res, next) => {
     try {
         const { name, evidenceFile, receipt, ...otherData } = req.body;
+        const { referenceNumber } = otherData;
 
-        console.log("Received receipt data:", receipt); // Debug log
+        // check if reference number is unique
+        const existingReport = await BlotterReport.findOne({ referenceNumber });
+        if (existingReport) {
+            return res.status(400).json({
+                success: false,
+                message: "Reference number already exists",
+            });
+        }
 
         // Validate payment info for digital payments
         if (["GCash", "Paymaya"].includes(otherData.paymentMethod) && !otherData.referenceNumber) {
@@ -186,6 +194,13 @@ export const updateBlotterReport = async (req, res, next) => {
                 success: false,
                 message: "OR Number is required when setting status to Under Investigation",
             });
+        }
+
+        if (req.body.orNumber) {
+            const existingReport = await BlotterReport.findOne({ orNumber: req.body.orNumber });
+            if (existingReport) {
+                return res.status(400).json({ message: "OR Number already exists" });
+            }
         }
 
         const updatedReport = await BlotterReport.findByIdAndUpdate(

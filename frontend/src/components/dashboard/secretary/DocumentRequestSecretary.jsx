@@ -33,9 +33,6 @@ export function DocumentRequestSecretary() {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedType, setSelectedType] = useState("all");
 
-    // Add this near the top of your component where other state variables are defined
-    const [barangayChairman, setBarangayChairman] = useState(null);
-
     // Replace the isPrinting boolean with an object to track printing state by request ID
     const [printingStates, setPrintingStates] = useState({});
 
@@ -128,23 +125,6 @@ export function DocumentRequestSecretary() {
             fetchRequests();
         }
     }, [currentUser, currentPage, pageSize]); // Add pagination dependencies
-
-    // Add this useEffect to fetch the chairman's information
-    useEffect(() => {
-        const fetchChairman = async () => {
-            try {
-                const response = await api.get("/users/chairman/current");
-                if (response.data.success) {
-                    setBarangayChairman(response.data.data);
-                }
-            } catch (error) {
-                console.error("Error fetching chairman:", error);
-                toast.error("Failed to fetch barangay chairman information");
-            }
-        };
-
-        fetchChairman();
-    }, []);
 
     // Add this function to normalize status values
     const normalizeStatus = (status) => {
@@ -285,34 +265,21 @@ export function DocumentRequestSecretary() {
     // Update the handlePrint function
     const handlePrint = async (request) => {
         try {
-            // Set printing state for this specific request
             setPrintingStates((prev) => ({ ...prev, [request.id]: true }));
 
-            if (
-                !["Barangay Indigency", "Barangay Clearance", "Business Clearance"].includes(
-                    request.type
-                )
-            ) {
-                toast.error(
-                    "Print functionality is only available for Barangay Indigency, Clearance, and Business Clearance"
-                );
+            if (!["Barangay Indigency", "Barangay Clearance", "Business Clearance"].includes(request.type)) {
+                toast.error("Print functionality is only available for Barangay Indigency, Clearance, and Business Clearance");
                 return;
             }
 
-            // Fetch officials for Barangay Clearance
+            // Fetch officials for all document types
+            const officialsResponse = await api.get(`/officials/get-officials/${currentUser.barangay}`);
             let officials = [];
-            if (request.type === "Barangay Clearance") {
-                const officialsResponse = await api.get(
-                    `/officials/get-officials/${currentUser.barangay}`
-                );
-                if (officialsResponse.data.success) {
-                    officials = officialsResponse.data.officials;
-                }
+            if (officialsResponse.data.success) {
+                officials = officialsResponse.data.officials;
             }
 
-            const response = await api.get(
-                `/${request.type.toLowerCase().replace(/\s+/g, "-")}/${request.id}/print`
-            );
+            const response = await api.get(`/${request.type.toLowerCase().replace(/\s+/g, "-")}/${request.id}/print`);
 
             if (!response.data.success) {
                 throw new Error(response.data.message);
@@ -322,20 +289,11 @@ export function DocumentRequestSecretary() {
             let printContent;
 
             if (request.type === "Barangay Indigency") {
-                printContent = generateIndigencyTemplate(document, {
-                    ...currentUser,
-                    barangayCaptain: barangayChairman?.name || currentUser?.barangayCaptain,
-                });
+                printContent = generateIndigencyTemplate(document, officials, currentUser);
             } else if (request.type === "Barangay Clearance") {
-                printContent = generateClearanceTemplate(document, officials, {
-                    ...currentUser,
-                    barangayCaptain: barangayChairman?.name || currentUser?.barangayCaptain,
-                });
+                printContent = generateClearanceTemplate(document, officials, currentUser);
             } else if (request.type === "Business Clearance") {
-                printContent = generateBusinessClearanceTemplate(document, {
-                    ...currentUser,
-                    barangayCaptain: barangayChairman?.name || currentUser?.barangayCaptain,
-                });
+                printContent = generateBusinessClearanceTemplate(document, officials, currentUser);
             }
 
             const printWindow = window.open("", "_blank");
@@ -345,7 +303,6 @@ export function DocumentRequestSecretary() {
             console.error("Error preparing print document:", error);
             toast.error("Failed to prepare document for printing");
         } finally {
-            // Clear printing state for this specific request
             setPrintingStates((prev) => ({ ...prev, [request.id]: false }));
         }
     };

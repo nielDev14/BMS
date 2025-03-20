@@ -29,20 +29,6 @@ export const createBarangayClearance = async (req, res, next) => {
             amount,
         } = req.body;
 
-        console.log("Received data:", {
-            userId,
-            name,
-            purpose,
-            paymentMethod,
-            dateOfPayment,
-            placeOfBirth,
-            civilStatus,
-            receipt: receipt ? "Present" : "Missing",
-            referenceNumber,
-            age,
-            sex,
-        });
-
         // Validate only the essential required fields
         if (
             !purpose ||
@@ -82,6 +68,15 @@ export const createBarangayClearance = async (req, res, next) => {
             });
         }
 
+        // check if reference number is unique
+        const existingClearance = await BarangayClearance.findOne({ referenceNumber });
+        if (existingClearance) {
+            return res.status(400).json({
+                success: false,
+                message: "Reference number already exists",
+            });
+        }
+        
         try {
             // Get user data to ensure we have complete information
             const user = await User.findById(userId);
@@ -211,8 +206,16 @@ export const approveBarangayClearance = async (req, res, next) => {
             });
         }
 
-        const currentDate = new Date();
+        // check if or number is unique
+        const existingClearance = await BarangayClearance.findOne({ orNumber });
+        if (existingClearance) {
+            return res.status(400).json({
+                success: false,
+                message: "OR number already exists",
+            });
+        }
 
+        const currentDate = new Date();
         // Update status-related fields
         barangayClearance.status = status;
         barangayClearance.isVerified = status === "Approved";

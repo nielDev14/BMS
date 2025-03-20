@@ -491,6 +491,13 @@ export const updateBusinessClearanceStatus = async (req, res, next) => {
             });
         }
 
+        if (orNumber) {
+            const existingReport = await BusinessClearance.findOne({ orNumber: orNumber });
+            if (existingReport) {
+                return res.status(400).json({ message: "OR Number already exists" });
+            }
+        }
+
         // Update the document fields
         businessClearance.status = status;
         businessClearance.isVerified = [

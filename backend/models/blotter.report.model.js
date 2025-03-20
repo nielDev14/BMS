@@ -53,7 +53,7 @@ const blotterReportSchema = new mongoose.Schema(
             type: String,
             required: function () {
                 return this.status === "Under Investigation";
-            },
+            }
         },
 
         // Payment Information
@@ -69,6 +69,7 @@ const blotterReportSchema = new mongoose.Schema(
         },
         referenceNumber: {
             type: String,
+            unique: true,
             required: function () {
                 return ["GCash", "Paymaya"].includes(this.paymentMethod);
             },

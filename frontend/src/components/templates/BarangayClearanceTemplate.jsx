@@ -9,9 +9,6 @@ export const generateClearanceTemplate = (document, officials, currentUser) => {
     const month = dateIssued.toLocaleString("default", { month: "long" });
     const year = dateIssued.getFullYear();
 
-    // Get the chairman's name
-    const chairmanName = currentUser?.barangayCaptain || "[BARANGAY CAPTAIN NAME]";
-
     // Function to get formatted official title with more compact styling
     const getFormattedOfficial = (official) => {
         const position = official.position.toLowerCase();
@@ -185,7 +182,7 @@ export const generateClearanceTemplate = (document, officials, currentUser) => {
                         <!-- Chairman Signature -->
                         <div class="text-center">
                             <hr class="border-black w-[200px] mx-auto">
-                            <p class="font-bold text-base">HON. ${chairmanName}</p>
+                            <p class="font-bold text-base">HON. ${officials.find(official => official.position === "Chairman")?.name}</p>
                             <p class="text-sm">Punong Barangay</p>
                         </div>
                         <p class="italic text-xs">Not valid without seal</p>

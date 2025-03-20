@@ -100,6 +100,10 @@ export const signUp = async (req, res, next) => {
         // Save user and send verification
         await newUser.save().then((result) => {
             sendVerificationEmail(result, res);
+            res.status(201).json({
+                success: true,
+                message: "User registered successfully. Please check your email for verification.",
+            });
         });
     } catch (error) {
         next(error);

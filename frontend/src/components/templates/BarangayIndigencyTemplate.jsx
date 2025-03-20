@@ -1,9 +1,9 @@
 import GASAN_LOGO from "../../assets/gasan-logo.png";
 import PHILIPPINES_LOGO from "../../assets/ph-logo.png";
 
-export const generateIndigencyTemplate = (document, currentUser) => {
-    // Get the chairman's name from the passed data
-    const chairmanName = currentUser?.barangayCaptain || "[BARANGAY CAPTAIN NAME]";
+export const generateIndigencyTemplate = (document, officials, currentUser) => {
+    // Get the chairman's name from officials
+    const chairmanName = officials.find(official => official.position === "Chairman")?.name || "[BARANGAY CAPTAIN NAME]";
 
     return `
     <!DOCTYPE html>

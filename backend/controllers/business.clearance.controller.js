@@ -11,6 +11,7 @@ import { STATUS_TYPES } from "../models/business.clearance.model.js";
 export const createBusinessClearance = async (req, res, next) => {
     try {
         const data = req.body;
+        const { referenceNumber, ...otherData } = data;
         const requiredFields = [
             "ownerName",
             "businessName",
@@ -54,6 +55,15 @@ export const createBusinessClearance = async (req, res, next) => {
             return res.status(400).json({
                 success: false,
                 message: "Invalid amount value",
+            });
+        }   
+
+        // check if reference number is unique
+        const existingClearance = await BusinessClearance.findOne({ referenceNumber });
+        if (existingClearance) {
+            return res.status(400).json({
+                success: false,
+                message: "Reference number already exists",
             });
         }
 

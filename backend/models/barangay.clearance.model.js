@@ -51,6 +51,7 @@ const barangayClearanceSchema = new mongoose.Schema(
         },
         referenceNumber: {
             type: String,
+            unique: true,
             required: function () {
                 return ["GCash", "Paymaya"].includes(this.paymentMethod);
             },
@@ -114,6 +115,7 @@ const barangayClearanceSchema = new mongoose.Schema(
         orNumber: {
             type: String,
             default: null,
+            unique: true,
         },
 
         // Add field to track who processed the request
